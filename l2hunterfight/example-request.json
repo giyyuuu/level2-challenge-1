@@ -1,0 +1,31 @@
+{
+  "fighterA": {
+    "id": 1,
+    "name": "Gon Freecss",
+    "nenType": "Enhancer",
+    "baseStats": {
+      "strength": 85,
+      "speed": 80,
+      "durability": 75,
+      "intelligence": 70,
+      "auraCapacity": 90,
+      "auraControl": 75,
+      "experience": 60
+    }
+  },
+  "fighterB": {
+    "id": 2,
+    "name": "Killua Zoldyck",
+    "nenType": "Transmuter",
+    "baseStats": {
+      "strength": 70,
+      "speed": 95,
+      "durability": 70,
+      "intelligence": 85,
+      "auraCapacity": 80,
+      "auraControl": 90,
+      "experience": 75
+    }
+  }
+}
+
