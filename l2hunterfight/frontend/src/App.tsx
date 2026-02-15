@@ -90,6 +90,8 @@ function App() {
     setPrediction(null);
 
     try {
+      console.log("[Frontend] Sending request to /api/predict", { fighterA, fighterB });
+      
       const response = await fetch("/api/predict", {
         method: "POST",
         headers: {
@@ -98,14 +100,52 @@ function App() {
         body: JSON.stringify({ fighterA, fighterB }),
       });
 
+      console.log("[Frontend] Response status:", response.status, response.statusText);
+      console.log("[Frontend] Response Content-Type:", response.headers.get("Content-Type"));
+
+      // Get response text first to safely check if it's JSON
+      const responseText = await response.text();
+      console.log("[Frontend] Response body (first 200 chars):", responseText.substring(0, 200));
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to predict fight");
+        // Try to parse as JSON, but handle non-JSON responses gracefully
+        let errorMessage = `Request failed with status ${response.status}`;
+        
+        if (responseText.trim()) {
+          try {
+            const errorData = JSON.parse(responseText);
+            errorMessage = errorData.error || errorData.message || errorMessage;
+            if (errorData.details) {
+              errorMessage += `: ${Array.isArray(errorData.details) ? errorData.details.join(", ") : errorData.details}`;
+            }
+          } catch (parseError) {
+            // Response is not JSON (might be HTML error page or plain text)
+            console.error("[Frontend] Failed to parse error response as JSON:", parseError);
+            errorMessage = `Server error (${response.status}): ${responseText.substring(0, 100)}`;
+          }
+        }
+        
+        throw new Error(errorMessage);
       }
 
-      const data: PredictionResponse = await response.json();
+      // Parse successful response
+      if (!responseText.trim()) {
+        throw new Error("Server returned empty response");
+      }
+
+      let data: PredictionResponse;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error("[Frontend] Failed to parse success response as JSON:", parseError);
+        console.error("[Frontend] Response text:", responseText);
+        throw new Error("Server returned invalid JSON response");
+      }
+
+      console.log("[Frontend] Successfully parsed prediction:", data);
       setPrediction(data);
     } catch (err) {
+      console.error("[Frontend] Error in handlePredict:", err);
       setError(err instanceof Error ? err.message : "Unknown error occurred");
     } finally {
       setLoading(false);
